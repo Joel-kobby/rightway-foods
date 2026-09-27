@@ -8,12 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        brand: {
+          green: "#1a5c2a",
+          gold: "#c8890a",
+          cream: "#f9f7f0",
+          earth: "#6b3e26",
+        },
       },
     },
   },
   plugins: [],
 };
+
 export default config;

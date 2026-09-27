@@ -1,0 +1,627 @@
+// RightWay Foods — Core Database Schema
+// SQLite for local development — switch provider to "postgresql" for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// AUTHENTICATION & USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  role          String    @default("SALESPERSON")
+  isActive      Boolean   @default(true)
+  isDemo        Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sales              Sale[]
+  payments           Payment[]
+  expenses           Expense[]
+  cashSessions       CashSession[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  assignedCustomers  Customer[]          @relation("AssignedSalesperson")
+  aiConversations    AIConversation[]
+  inventoryMovements InventoryMovement[]
+  approvals          Approval[]          @relation("ApprovalRequester")
+  approvedBy         Approval[]          @relation("ApprovalApprover")
+  targetsAssigned    SalesTarget[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTS & PRICING
+// ─────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  sku          String   @unique
+  name         String
+  slug         String   @unique
+  description  String?
+  categoryId   String
+  unit         String
+  imageUrl     String?
+  isActive     Boolean  @default(true)
+  isDemo       Boolean  @default(false)
+  reorderLevel Int      @default(10)
+  supplierId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category    Category        @relation(fields: [categoryId], references: [id])
+  supplier    Supplier?       @relation(fields: [supplierId], references: [id])
+  variants    ProductVariant[]
+  inventory   Inventory[]
+  saleItems   SaleItem[]
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id              String    @id @default(cuid())
+  productId       String
+  name            String
+  sku             String    @unique
+  unit            String
+  costPrice       Float
+  retailPrice     Float
+  wholesalePrice  Float?
+  minSellingPrice Float
+  promoPrice      Float?
+  promoEndsAt     DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  product      Product        @relation(fields: [productId], references: [id])
+  priceHistory PriceHistory[]
+  inventory    Inventory?
+  saleItems    SaleItem[]
+  orderItems   OrderItem[]
+
+  @@map("product_variants")
+}
+
+// Immutable price history — never delete
+model PriceHistory {
+  id              String   @id @default(cuid())
+  variantId       String
+  costPrice       Float
+  retailPrice     Float
+  wholesalePrice  Float?
+  minSellingPrice Float
+  changedById     String?
+  reason          String?
+  effectiveFrom   DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("price_history")
+}
+
+// ─────────────────────────────────────────────
+// INVENTORY
+// ─────────────────────────────────────────────
+
+model Inventory {
+  id          String   @id @default(cuid())
+  productId   String
+  variantId   String   @unique
+  quantity    Float    @default(0)
+  reservedQty Float    @default(0)
+  updatedAt   DateTime @updatedAt
+
+  product   Product           @relation(fields: [productId], references: [id])
+  variant   ProductVariant    @relation(fields: [variantId], references: [id])
+  movements InventoryMovement[]
+
+  @@map("inventory")
+}
+
+model InventoryMovement {
+  id            String   @id @default(cuid())
+  inventoryId   String
+  type          String   // InventoryMovementType enum stored as string
+  quantity      Float
+  balanceAfter  Float
+  reason        String
+  reference     String?
+  performedById String?
+  isDemo        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  performedBy User?     @relation(fields: [performedById], references: [id])
+
+  @@map("inventory_movements")
+}
+
+// ─────────────────────────────────────────────
+// CUSTOMERS
+// ─────────────────────────────────────────────
+
+model Customer {
+  id                 String   @id @default(cuid())
+  customerId         String   @unique
+  firstName          String
+  lastName           String?
+  businessName       String?
+  email              String?
+  phone              String
+  phone2             String?
+  customerType       String   @default("RETAIL")
+  region             String?
+  city               String?
+  address            String?
+  landmark           String?
+  assignedToId       String?
+  notes              String?
+  totalPurchases     Float    @default(0)
+  outstandingBalance Float    @default(0)
+  lastPurchaseAt     DateTime?
+  isActive           Boolean  @default(true)
+  isDemo             Boolean  @default(false)
+  hasAccount         Boolean  @default(false)
+  accountUserId      String?  @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  assignedTo User?     @relation("AssignedSalesperson", fields: [assignedToId], references: [id])
+  sales      Sale[]
+  orders     Order[]
+  payments   Payment[]
+
+  @@map("customers")
+}
+
+// ─────────────────────────────────────────────
+// ORDERS (customer-facing ecommerce)
+// ─────────────────────────────────────────────
+
+model Order {
+  id             String    @id @default(cuid())
+  orderNumber    String    @unique
+  customerId     String?
+  guestName      String?
+  guestPhone     String?
+  guestEmail     String?
+  guestAddress   String?
+  guestRegion    String?
+  guestCity      String?
+  guestLandmark  String?
+  deliveryNotes  String?
+  deliveryZoneId String?
+  deliveryFee    Float     @default(0)
+  subtotal       Float
+  total          Float
+  status         String    @default("PENDING")
+  paymentStatus  String    @default("UNPAID")
+  paymentMethod  String?
+  paymentRef     String?
+  notes          String?
+  isDemo         Boolean   @default(false)
+  placedAt       DateTime  @default(now())
+  confirmedAt    DateTime?
+  dispatchedAt   DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  customer     Customer?     @relation(fields: [customerId], references: [id])
+  deliveryZone DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  items        OrderItem[]
+  payments     Payment[]
+  sale         Sale?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String
+  quantity  Float
+  unitPrice Float
+  costPrice Float
+  discount  Float    @default(0)
+  total     Float
+  createdAt DateTime @default(now())
+
+  order   Order          @relation(fields: [orderId], references: [id])
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─────────────────────────────────────────────
+// SALES (internal — salesperson records)
+// ─────────────────────────────────────────────
+
+model Sale {
+  id            String    @id @default(cuid())
+  saleNumber    String    @unique
+  orderId       String?   @unique
+  customerId    String?
+  salespersonId String
+  cashSessionId String?
+  subtotal      Float
+  discount      Float     @default(0)
+  total         Float
+  costTotal     Float
+  grossProfit   Float
+  paymentStatus String    @default("UNPAID")
+  status        String    @default("COMPLETED")
+  notes         String?
+  isDemo        Boolean   @default(false)
+  saleDate      DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+  salesperson User         @relation(fields: [salespersonId], references: [id])
+  cashSession CashSession? @relation(fields: [cashSessionId], references: [id])
+  order       Order?       @relation(fields: [orderId], references: [id])
+  items       SaleItem[]
+  payments    Payment[]
+  approvals   Approval[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String   @id @default(cuid())
+  saleId      String
+  productId   String
+  variantId   String
+  quantity    Float
+  unitPrice   Float
+  costPrice   Float
+  discount    Float    @default(0)
+  total       Float
+  grossProfit Float
+  createdAt   DateTime @default(now())
+
+  sale    Sale           @relation(fields: [saleId], references: [id])
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("sale_items")
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model Payment {
+  id            String    @id @default(cuid())
+  transactionId String    @unique
+  saleId        String?
+  orderId       String?
+  customerId    String?
+  cashSessionId String?
+  cashierId     String?
+  amount        Float
+  paymentMethod String
+  reference     String?
+  notes         String?
+  status        String    @default("CONFIRMED")
+  isDemo        Boolean   @default(false)
+  paidAt        DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sale        Sale?        @relation(fields: [saleId], references: [id])
+  order       Order?       @relation(fields: [orderId], references: [id])
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+  cashier     User?        @relation(fields: [cashierId], references: [id])
+  cashSession CashSession? @relation(fields: [cashSessionId], references: [id])
+
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────────
+// CASH SESSIONS & RECONCILIATION
+// ─────────────────────────────────────────────
+
+model CashSession {
+  id             String    @id @default(cuid())
+  cashierId      String
+  openedAt       DateTime  @default(now())
+  closedAt       DateTime?
+  openingBalance Float
+  expectedCash   Float?
+  actualCash     Float?
+  difference     Float?
+  status         String    @default("OPEN")
+  notes          String?
+  isDemo         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  cashier        User                @relation(fields: [cashierId], references: [id])
+  reconciliation CashReconciliation?
+  sales          Sale[]
+  payments       Payment[]
+  expenses       Expense[]
+
+  @@map("cash_sessions")
+}
+
+model CashReconciliation {
+  id           String    @id @default(cuid())
+  sessionId    String    @unique
+  expectedCash Float
+  actualCash   Float
+  difference   Float
+  result       String
+  explanation  String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  session CashSession @relation(fields: [sessionId], references: [id])
+
+  @@map("cash_reconciliations")
+}
+
+// ─────────────────────────────────────────────
+// EXPENSES
+// ─────────────────────────────────────────────
+
+model ExpenseCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id             String    @id @default(cuid())
+  expenseRef     String    @unique
+  categoryId     String
+  amount         Float
+  description    String
+  paymentMethod  String
+  reference      String?
+  receiptUrl     String?
+  recordedById   String
+  cashSessionId  String?
+  approvalStatus String    @default("APPROVED")
+  isDemo         Boolean   @default(false)
+  expenseDate    DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+  recordedBy  User            @relation(fields: [recordedById], references: [id])
+  cashSession CashSession?    @relation(fields: [cashSessionId], references: [id])
+
+  @@map("expenses")
+}
+
+// ─────────────────────────────────────────────
+// APPROVALS
+// ─────────────────────────────────────────────
+
+model Approval {
+  id            String    @id @default(cuid())
+  type          String
+  requestedById String
+  approvedById  String?
+  saleId        String?
+  reason        String
+  notes         String?
+  status        String    @default("PENDING")
+  createdAt     DateTime  @default(now())
+  resolvedAt    DateTime?
+
+  requestedBy User  @relation("ApprovalRequester", fields: [requestedById], references: [id])
+  approvedBy  User? @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  sale        Sale? @relation(fields: [saleId], references: [id])
+
+  @@map("approvals")
+}
+
+// ─────────────────────────────────────────────
+// DELIVERY
+// ─────────────────────────────────────────────
+
+model DeliveryZone {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  regions               String   // JSON array stored as string for SQLite
+  fee                   Float
+  estimatedDays         Int      @default(1)
+  minOrder              Float    @default(0)
+  freeDeliveryThreshold Float?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  orders     Order[]
+  deliveries Delivery[]
+
+  @@map("delivery_zones")
+}
+
+model Delivery {
+  id              String    @id @default(cuid())
+  orderId         String    @unique
+  zoneId          String?
+  riderId         String?
+  status          String    @default("PENDING")
+  trackingCode    String?   @unique
+  scheduledAt     DateTime?
+  dispatchedAt    DateTime?
+  deliveredAt     DateTime?
+  proofOfDelivery String?
+  notes           String?
+  isDemo          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  zone DeliveryZone? @relation(fields: [zoneId], references: [id])
+
+  @@map("deliveries")
+}
+
+// ─────────────────────────────────────────────
+// SALES TARGETS
+// ─────────────────────────────────────────────
+
+model SalesTarget {
+  id           String   @id @default(cuid())
+  userId       String?
+  period       String
+  periodStart  DateTime
+  periodEnd    DateTime
+  targetAmount Float
+  actualAmount Float    @default(0)
+  notes        String?
+  isDemo       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("sales_targets")
+}
+
+// ─────────────────────────────────────────────
+// SUPPLIERS
+// ─────────────────────────────────────────────
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  isDemo      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("suppliers")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  priority  String   @default("NORMAL")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG — IMMUTABLE
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  userRole      String?
+  action        String
+  entity        String
+  entityId      String?
+  previousValue String?  // JSON stored as string
+  newValue      String?  // JSON stored as string
+  ipAddress     String?
+  userAgent     String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// AI CONVERSATIONS (AskGod)
+// ─────────────────────────────────────────────
+
+model AIConversation {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String
+  context   String   @default("PUBLIC")
+  messages  String   // JSON stored as string
+  isDemo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("ai_conversations")
+}
+
+// ─────────────────────────────────────────────
+// SYSTEM SETTINGS
+// ─────────────────────────────────────────────
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
+  group     String   @default("general")
+  label     String?
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
