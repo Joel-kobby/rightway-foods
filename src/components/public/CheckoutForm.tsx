@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
-interface Zone { id: string; name: string; fee: number; estimatedDays: number; freeDeliveryThreshold: number | null; }
+interface Zone { id: string; name: string; fee: number | string; estimatedDays: number; freeDeliveryThreshold: number | string | null; }
 interface CartItem { variantId: string; productName: string; variantName: string; price: number; quantity: number; }
 
 export function CheckoutForm({ zones }: { zones: Zone[] }) {
@@ -12,28 +12,30 @@ export function CheckoutForm({ zones }: { zones: Zone[] }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  const [name,      setName]      = useState("");
-  const [phone,     setPhone]     = useState("");
-  const [email,     setEmail]     = useState("");
-  const [address,   setAddress]   = useState("");
-  const [region,    setRegion]    = useState("");
-  const [city,      setCity]      = useState("");
-  const [landmark,  setLandmark]  = useState("");
-  const [notes,     setNotes]     = useState("");
-  const [zoneId,    setZoneId]    = useState(zones[0]?.id ?? "");
-  const [method,    setMethod]    = useState("CASH");
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [region, setRegion] = useState("");
+  const [city, setCity] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [notes, setNotes] = useState("");
+  const [zoneId, setZoneId] = useState(zones[0]?.id ?? "");
+  const [method, setMethod] = useState("CASH");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setMounted(true);
-    try { setCart(JSON.parse(localStorage.getItem("rw_cart") ?? "[]")); } catch {}
+    try { setCart(JSON.parse(localStorage.getItem("rw_cart") ?? "[]")); } catch { }
   }, []);
 
   const selectedZone = zones.find(z => z.id === zoneId);
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const freeDelivery = selectedZone?.freeDeliveryThreshold && subtotal >= selectedZone.freeDeliveryThreshold;
-  const deliveryFee = freeDelivery ? 0 : (selectedZone?.fee ?? 0);
+  const freeThreshold = selectedZone?.freeDeliveryThreshold ? Number(selectedZone.freeDeliveryThreshold) : null;
+  const zoneFee = selectedZone ? Number(selectedZone.fee) : 0;
+  const freeDelivery = freeThreshold !== null && subtotal >= freeThreshold;
+  const deliveryFee = freeDelivery ? 0 : zoneFee;
   const total = subtotal + deliveryFee;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -119,10 +121,10 @@ export function CheckoutForm({ zones }: { zones: Zone[] }) {
                   <div>
                     <p className="font-semibold text-gray-900">{z.name}</p>
                     <p className="text-xs text-gray-400">{z.estimatedDays} day{z.estimatedDays > 1 ? "s" : ""} estimated</p>
-                    {z.freeDeliveryThreshold && <p className="text-xs text-green-600">Free delivery on orders over {formatCurrency(z.freeDeliveryThreshold)}</p>}
+                    {z.freeDeliveryThreshold && <p className="text-xs text-green-600">Free delivery on orders over {formatCurrency(Number(z.freeDeliveryThreshold))}</p>}
                   </div>
                 </div>
-                <p className="font-bold text-gray-900">{formatCurrency(z.fee)}</p>
+                <p className="font-bold text-gray-900">{formatCurrency(Number(z.fee))}</p>
               </label>
             ))}
           </div>
@@ -131,7 +133,7 @@ export function CheckoutForm({ zones }: { zones: Zone[] }) {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-3">
             <h2 className="font-bold text-gray-900">Payment Method</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[["CASH","Cash on Delivery"],["MOBILE_MONEY","Mobile Money"],["BANK_TRANSFER","Bank Transfer"],["CARD","Card"]].map(([val,label]) => (
+              {[["CASH", "Cash on Delivery"], ["MOBILE_MONEY", "Mobile Money"], ["BANK_TRANSFER", "Bank Transfer"], ["CARD", "Card"]].map(([val, label]) => (
                 <button key={val} type="button" onClick={() => setMethod(val)}
                   className={`py-3 px-2 rounded-xl border-2 text-xs font-semibold transition ${method === val ? "border-[hsl(142,71%,25%)] bg-[hsl(142,71%,97%)] text-[hsl(142,71%,25%)]" : "border-gray-100 text-gray-600 hover:border-gray-200"}`}>
                   {label}
