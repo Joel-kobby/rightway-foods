@@ -1,12 +1,12 @@
 // RightWay Foods — Core Database Schema
-// SQLite for local development — switch provider to "postgresql" for production
+// PostgreSQL (Render) for production
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -77,12 +77,12 @@ model Product {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  category    Category        @relation(fields: [categoryId], references: [id])
-  supplier    Supplier?       @relation(fields: [supplierId], references: [id])
-  variants    ProductVariant[]
-  inventory   Inventory[]
-  saleItems   SaleItem[]
-  orderItems  OrderItem[]
+  category   Category        @relation(fields: [categoryId], references: [id])
+  supplier   Supplier?       @relation(fields: [supplierId], references: [id])
+  variants   ProductVariant[]
+  inventory  Inventory[]
+  saleItems  SaleItem[]
+  orderItems OrderItem[]
 
   @@map("products")
 }
@@ -93,11 +93,11 @@ model ProductVariant {
   name            String
   sku             String    @unique
   unit            String
-  costPrice       Float
-  retailPrice     Float
-  wholesalePrice  Float?
-  minSellingPrice Float
-  promoPrice      Float?
+  costPrice       Decimal   @db.Decimal(12, 2)
+  retailPrice     Decimal   @db.Decimal(12, 2)
+  wholesalePrice  Decimal?  @db.Decimal(12, 2)
+  minSellingPrice Decimal   @db.Decimal(12, 2)
+  promoPrice      Decimal?  @db.Decimal(12, 2)
   promoEndsAt     DateTime?
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -112,14 +112,13 @@ model ProductVariant {
   @@map("product_variants")
 }
 
-// Immutable price history — never delete
 model PriceHistory {
   id              String   @id @default(cuid())
   variantId       String
-  costPrice       Float
-  retailPrice     Float
-  wholesalePrice  Float?
-  minSellingPrice Float
+  costPrice       Decimal  @db.Decimal(12, 2)
+  retailPrice     Decimal  @db.Decimal(12, 2)
+  wholesalePrice  Decimal? @db.Decimal(12, 2)
+  minSellingPrice Decimal  @db.Decimal(12, 2)
   changedById     String?
   reason          String?
   effectiveFrom   DateTime @default(now())
@@ -138,8 +137,8 @@ model Inventory {
   id          String   @id @default(cuid())
   productId   String
   variantId   String   @unique
-  quantity    Float    @default(0)
-  reservedQty Float    @default(0)
+  quantity    Decimal  @db.Decimal(12, 3) @default(0)
+  reservedQty Decimal  @db.Decimal(12, 3) @default(0)
   updatedAt   DateTime @updatedAt
 
   product   Product           @relation(fields: [productId], references: [id])
@@ -152,9 +151,9 @@ model Inventory {
 model InventoryMovement {
   id            String   @id @default(cuid())
   inventoryId   String
-  type          String   // InventoryMovementType enum stored as string
-  quantity      Float
-  balanceAfter  Float
+  type          String
+  quantity      Decimal  @db.Decimal(12, 3)
+  balanceAfter  Decimal  @db.Decimal(12, 3)
   reason        String
   reference     String?
   performedById String?
@@ -172,30 +171,30 @@ model InventoryMovement {
 // ─────────────────────────────────────────────
 
 model Customer {
-  id                 String   @id @default(cuid())
-  customerId         String   @unique
+  id                 String    @id @default(cuid())
+  customerId         String    @unique
   firstName          String
   lastName           String?
   businessName       String?
   email              String?
   phone              String
   phone2             String?
-  customerType       String   @default("RETAIL")
+  customerType       String    @default("RETAIL")
   region             String?
   city               String?
   address            String?
   landmark           String?
   assignedToId       String?
   notes              String?
-  totalPurchases     Float    @default(0)
-  outstandingBalance Float    @default(0)
+  totalPurchases     Decimal   @db.Decimal(14, 2) @default(0)
+  outstandingBalance Decimal   @db.Decimal(14, 2) @default(0)
   lastPurchaseAt     DateTime?
-  isActive           Boolean  @default(true)
-  isDemo             Boolean  @default(false)
-  hasAccount         Boolean  @default(false)
-  accountUserId      String?  @unique
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  isActive           Boolean   @default(true)
+  isDemo             Boolean   @default(false)
+  hasAccount         Boolean   @default(false)
+  accountUserId      String?   @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   assignedTo User?     @relation("AssignedSalesperson", fields: [assignedToId], references: [id])
   sales      Sale[]
@@ -206,7 +205,7 @@ model Customer {
 }
 
 // ─────────────────────────────────────────────
-// ORDERS (customer-facing ecommerce)
+// ORDERS
 // ─────────────────────────────────────────────
 
 model Order {
@@ -222,9 +221,9 @@ model Order {
   guestLandmark  String?
   deliveryNotes  String?
   deliveryZoneId String?
-  deliveryFee    Float     @default(0)
-  subtotal       Float
-  total          Float
+  deliveryFee    Decimal   @db.Decimal(10, 2) @default(0)
+  subtotal       Decimal   @db.Decimal(12, 2)
+  total          Decimal   @db.Decimal(12, 2)
   status         String    @default("PENDING")
   paymentStatus  String    @default("UNPAID")
   paymentMethod  String?
@@ -249,15 +248,15 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   orderId   String
   productId String
   variantId String
-  quantity  Float
-  unitPrice Float
-  costPrice Float
-  discount  Float    @default(0)
-  total     Float
+  quantity  Decimal @db.Decimal(10, 3)
+  unitPrice Decimal @db.Decimal(12, 2)
+  costPrice Decimal @db.Decimal(12, 2)
+  discount  Decimal @db.Decimal(10, 2) @default(0)
+  total     Decimal @db.Decimal(12, 2)
   createdAt DateTime @default(now())
 
   order   Order          @relation(fields: [orderId], references: [id])
@@ -268,28 +267,28 @@ model OrderItem {
 }
 
 // ─────────────────────────────────────────────
-// SALES (internal — salesperson records)
+// SALES
 // ─────────────────────────────────────────────
 
 model Sale {
-  id            String    @id @default(cuid())
-  saleNumber    String    @unique
-  orderId       String?   @unique
+  id            String   @id @default(cuid())
+  saleNumber    String   @unique
+  orderId       String?  @unique
   customerId    String?
   salespersonId String
   cashSessionId String?
-  subtotal      Float
-  discount      Float     @default(0)
-  total         Float
-  costTotal     Float
-  grossProfit   Float
-  paymentStatus String    @default("UNPAID")
-  status        String    @default("COMPLETED")
+  subtotal      Decimal  @db.Decimal(12, 2)
+  discount      Decimal  @db.Decimal(10, 2) @default(0)
+  total         Decimal  @db.Decimal(12, 2)
+  costTotal     Decimal  @db.Decimal(12, 2)
+  grossProfit   Decimal  @db.Decimal(12, 2)
+  paymentStatus String   @default("UNPAID")
+  status        String   @default("COMPLETED")
   notes         String?
-  isDemo        Boolean   @default(false)
-  saleDate      DateTime  @default(now())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isDemo        Boolean  @default(false)
+  saleDate      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   customer    Customer?    @relation(fields: [customerId], references: [id])
   salesperson User         @relation(fields: [salespersonId], references: [id])
@@ -307,12 +306,12 @@ model SaleItem {
   saleId      String
   productId   String
   variantId   String
-  quantity    Float
-  unitPrice   Float
-  costPrice   Float
-  discount    Float    @default(0)
-  total       Float
-  grossProfit Float
+  quantity    Decimal  @db.Decimal(10, 3)
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  costPrice   Decimal  @db.Decimal(12, 2)
+  discount    Decimal  @db.Decimal(10, 2) @default(0)
+  total       Decimal  @db.Decimal(12, 2)
+  grossProfit Decimal  @db.Decimal(12, 2)
   createdAt   DateTime @default(now())
 
   sale    Sale           @relation(fields: [saleId], references: [id])
@@ -327,22 +326,22 @@ model SaleItem {
 // ─────────────────────────────────────────────
 
 model Payment {
-  id            String    @id @default(cuid())
-  transactionId String    @unique
+  id            String   @id @default(cuid())
+  transactionId String   @unique
   saleId        String?
   orderId       String?
   customerId    String?
   cashSessionId String?
   cashierId     String?
-  amount        Float
+  amount        Decimal  @db.Decimal(12, 2)
   paymentMethod String
   reference     String?
   notes         String?
-  status        String    @default("CONFIRMED")
-  isDemo        Boolean   @default(false)
-  paidAt        DateTime  @default(now())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  status        String   @default("CONFIRMED")
+  isDemo        Boolean  @default(false)
+  paidAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   sale        Sale?        @relation(fields: [saleId], references: [id])
   order       Order?       @relation(fields: [orderId], references: [id])
@@ -354,7 +353,7 @@ model Payment {
 }
 
 // ─────────────────────────────────────────────
-// CASH SESSIONS & RECONCILIATION
+// CASH SESSIONS
 // ─────────────────────────────────────────────
 
 model CashSession {
@@ -362,10 +361,10 @@ model CashSession {
   cashierId      String
   openedAt       DateTime  @default(now())
   closedAt       DateTime?
-  openingBalance Float
-  expectedCash   Float?
-  actualCash     Float?
-  difference     Float?
+  openingBalance Decimal   @db.Decimal(12, 2)
+  expectedCash   Decimal?  @db.Decimal(12, 2)
+  actualCash     Decimal?  @db.Decimal(12, 2)
+  difference     Decimal?  @db.Decimal(12, 2)
   status         String    @default("OPEN")
   notes          String?
   isDemo         Boolean   @default(false)
@@ -384,9 +383,9 @@ model CashSession {
 model CashReconciliation {
   id           String    @id @default(cuid())
   sessionId    String    @unique
-  expectedCash Float
-  actualCash   Float
-  difference   Float
+  expectedCash Decimal   @db.Decimal(12, 2)
+  actualCash   Decimal   @db.Decimal(12, 2)
+  difference   Decimal   @db.Decimal(12, 2)
   result       String
   explanation  String?
   reviewedById String?
@@ -415,21 +414,21 @@ model ExpenseCategory {
 }
 
 model Expense {
-  id             String    @id @default(cuid())
-  expenseRef     String    @unique
+  id             String   @id @default(cuid())
+  expenseRef     String   @unique
   categoryId     String
-  amount         Float
+  amount         Decimal  @db.Decimal(12, 2)
   description    String
   paymentMethod  String
   reference      String?
   receiptUrl     String?
   recordedById   String
   cashSessionId  String?
-  approvalStatus String    @default("APPROVED")
-  isDemo         Boolean   @default(false)
-  expenseDate    DateTime  @default(now())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  approvalStatus String   @default("APPROVED")
+  isDemo         Boolean  @default(false)
+  expenseDate    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   category    ExpenseCategory @relation(fields: [categoryId], references: [id])
   recordedBy  User            @relation(fields: [recordedById], references: [id])
@@ -468,11 +467,11 @@ model Approval {
 model DeliveryZone {
   id                    String   @id @default(cuid())
   name                  String   @unique
-  regions               String   // JSON array stored as string for SQLite
-  fee                   Float
+  regions               String[]
+  fee                   Decimal  @db.Decimal(10, 2)
   estimatedDays         Int      @default(1)
-  minOrder              Float    @default(0)
-  freeDeliveryThreshold Float?
+  minOrder              Decimal  @db.Decimal(10, 2) @default(0)
+  freeDeliveryThreshold Decimal? @db.Decimal(10, 2)
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -514,8 +513,8 @@ model SalesTarget {
   period       String
   periodStart  DateTime
   periodEnd    DateTime
-  targetAmount Float
-  actualAmount Float    @default(0)
+  targetAmount Decimal  @db.Decimal(14, 2)
+  actualAmount Decimal  @db.Decimal(14, 2) @default(0)
   notes        String?
   isDemo       Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -569,7 +568,7 @@ model Notification {
 }
 
 // ─────────────────────────────────────────────
-// AUDIT LOG — IMMUTABLE
+// AUDIT LOG
 // ─────────────────────────────────────────────
 
 model AuditLog {
@@ -579,8 +578,8 @@ model AuditLog {
   action        String
   entity        String
   entityId      String?
-  previousValue String?  // JSON stored as string
-  newValue      String?  // JSON stored as string
+  previousValue Json?
+  newValue      Json?
   ipAddress     String?
   userAgent     String?
   notes         String?
@@ -592,7 +591,7 @@ model AuditLog {
 }
 
 // ─────────────────────────────────────────────
-// AI CONVERSATIONS (AskGod)
+// AI CONVERSATIONS
 // ─────────────────────────────────────────────
 
 model AIConversation {
@@ -600,7 +599,7 @@ model AIConversation {
   userId    String?
   sessionId String
   context   String   @default("PUBLIC")
-  messages  String   // JSON stored as string
+  messages  Json
   isDemo    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

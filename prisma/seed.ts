@@ -185,11 +185,11 @@ async function main() {
 
   // ─── DELIVERY ZONES ────────────────────────────────────
   const zones = [
-    { name: "Accra Metro", regions: JSON.stringify(["Greater Accra"]), fee: 15, estimatedDays: 1, minOrder: 50, freeDeliveryThreshold: 300 },
-    { name: "Greater Accra (Outer)", regions: JSON.stringify(["Greater Accra", "Tema"]), fee: 25, estimatedDays: 1, minOrder: 80, freeDeliveryThreshold: 500 },
-    { name: "Kumasi", regions: JSON.stringify(["Ashanti"]), fee: 40, estimatedDays: 2, minOrder: 100, freeDeliveryThreshold: 600 },
-    { name: "Cape Coast", regions: JSON.stringify(["Central"]), fee: 35, estimatedDays: 2, minOrder: 80, freeDeliveryThreshold: null },
-    { name: "Nationwide", regions: JSON.stringify(["All regions"]), fee: 60, estimatedDays: 3, minOrder: 150, freeDeliveryThreshold: null },
+    { name: "Accra Metro", regions: ["Greater Accra"], fee: 15, estimatedDays: 1, minOrder: 50, freeDeliveryThreshold: 300 },
+    { name: "Greater Accra (Outer)", regions: ["Greater Accra", "Tema"], fee: 25, estimatedDays: 1, minOrder: 80, freeDeliveryThreshold: 500 },
+    { name: "Kumasi", regions: ["Ashanti"], fee: 40, estimatedDays: 2, minOrder: 100, freeDeliveryThreshold: 600 },
+    { name: "Cape Coast", regions: ["Central"], fee: 35, estimatedDays: 2, minOrder: 80, freeDeliveryThreshold: null },
+    { name: "Nationwide", regions: ["All regions"], fee: 60, estimatedDays: 3, minOrder: 150, freeDeliveryThreshold: null },
   ];
 
   for (const z of zones) {
