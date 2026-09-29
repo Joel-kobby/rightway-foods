@@ -5,14 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Format Ghana Cedi
-export function formatCurrency(amount: number | string | null | undefined): string {
-  const num = typeof amount === "string" ? parseFloat(amount) : (amount ?? 0);
+// Format Ghana Cedi — accepts number, string, or Prisma Decimal
+export function formatCurrency(amount: number | string | { toString(): string } | null | undefined): string {
+  if (amount === null || amount === undefined) return "₵0.00";
+  const num = typeof amount === "number" ? amount : parseFloat(amount.toString());
   return new Intl.NumberFormat("en-GH", {
     style: "currency",
     currency: "GHS",
     minimumFractionDigits: 2,
-  }).format(num);
+  }).format(isNaN(num) ? 0 : num);
 }
 
 // Generate human-readable IDs

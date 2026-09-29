@@ -28,20 +28,20 @@ export async function POST(req: NextRequest) {
     if (!variant || !variant.isActive) {
       return NextResponse.json({ error: "One or more products are unavailable." }, { status: 400 });
     }
-    const unitPrice = item.unitPrice ?? variant.retailPrice;
+    const unitPrice = item.unitPrice ?? Number(variant.retailPrice);
     const itemTotal = unitPrice * item.quantity;
     subtotal += itemTotal;
     resolvedItems.push({
       productId: variant.productId, variantId: variant.id,
-      quantity: item.quantity, unitPrice, costPrice: variant.costPrice,
+      quantity: item.quantity, unitPrice, costPrice: Number(variant.costPrice),
       discount: 0, total: itemTotal,
     });
   }
 
   // Delivery fee
   const zone = deliveryZoneId ? await db.deliveryZone.findUnique({ where: { id: deliveryZoneId } }) : null;
-  const freeThreshold = zone?.freeDeliveryThreshold;
-  const deliveryFee = (freeThreshold && subtotal >= freeThreshold) ? 0 : (zone?.fee ?? 0);
+  const freeThreshold = zone?.freeDeliveryThreshold ? Number(zone.freeDeliveryThreshold) : null;
+  const deliveryFee = (freeThreshold && subtotal >= freeThreshold) ? 0 : Number(zone?.fee ?? 0);
   const total = subtotal + deliveryFee;
 
   // Generate order number
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     for (const item of resolvedItems) {
       await tx.inventory.updateMany({
         where: { variantId: item.variantId },
-        data:  { reservedQty: { increment: item.quantity } },
+        data: { reservedQty: { increment: item.quantity } },
       });
     }
 

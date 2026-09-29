@@ -19,12 +19,12 @@ export async function PATCH(req: NextRequest) {
   const inv = await db.inventory.findUnique({ where: { id: inventoryId } });
   if (!inv) return NextResponse.json({ error: "Inventory record not found." }, { status: 404 });
 
-  const isIn = ["PURCHASE","RETURN_IN","ADJUSTMENT_IN","OPENING_STOCK","TRANSFER_IN"].includes(type);
+  const isIn = ["PURCHASE", "RETURN_IN", "ADJUSTMENT_IN", "OPENING_STOCK", "TRANSFER_IN"].includes(type);
   const delta = isIn ? Math.abs(quantity) : -Math.abs(quantity);
-  const newQty = inv.quantity + delta;
+  const newQty = Number(inv.quantity) + delta;
 
   if (newQty < 0) {
-    return NextResponse.json({ error: `Insufficient stock. Current: ${inv.quantity}, requested reduction: ${Math.abs(quantity)}` }, { status: 422 });
+    return NextResponse.json({ error: `Insufficient stock. Current: ${Number(inv.quantity)}, requested reduction: ${Math.abs(quantity)}` }, { status: 422 });
   }
 
   await db.$transaction(async (tx) => {
@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest) {
       data: {
         inventoryId,
         type,
-        quantity:     delta,
+        quantity: delta,
         balanceAfter: newQty,
         reason,
         performedById: session.user.id,
@@ -41,13 +41,13 @@ export async function PATCH(req: NextRequest) {
     });
     await tx.auditLog.create({
       data: {
-        userId:        session.user.id,
-        userRole:      session.user.role,
-        action:        "INVENTORY_ADJUSTED",
-        entity:        "Inventory",
-        entityId:      inventoryId,
+        userId: session.user.id,
+        userRole: session.user.role,
+        action: "INVENTORY_ADJUSTED",
+        entity: "Inventory",
+        entityId: inventoryId,
         previousValue: JSON.stringify({ quantity: inv.quantity }),
-        newValue:      JSON.stringify({ quantity: newQty, type, reason }),
+        newValue: JSON.stringify({ quantity: newQty, type, reason }),
       },
     });
   });

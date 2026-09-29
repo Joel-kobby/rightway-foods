@@ -16,13 +16,13 @@ export default async function AdminOrdersPage() {
     take: 200,
     include: {
       customer: { select: { firstName: true, lastName: true, businessName: true } },
-      items:    { select: { quantity: true, total: true } },
+      items: { select: { quantity: true, total: true } },
     },
   });
 
-  const statusColors: Record<string, "default"|"info"|"success"|"warning"|"danger"> = {
-    PENDING:"warning", CONFIRMED:"info", PAID:"success", DELIVERED:"success",
-    CANCELLED:"danger", RETURNED:"danger",
+  const statusColors: Record<string, "default" | "info" | "success" | "warning" | "danger"> = {
+    PENDING: "warning", CONFIRMED: "info", PAID: "success", DELIVERED: "success",
+    CANCELLED: "danger", RETURNED: "danger",
   };
 
   return (
@@ -56,8 +56,8 @@ export default async function AdminOrdersPage() {
                   <td className="px-6 py-4 font-mono text-xs text-[hsl(142,71%,25%)] font-semibold">{o.orderNumber}</td>
                   <td className="px-6 py-4 font-medium text-gray-900">{name}</td>
                   <td className="px-6 py-4 text-right text-gray-600">{o.items.length}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(o.total)}</td>
-                  <td className="px-6 py-4"><Badge variant={statusColors[o.status] ?? "default"}>{o.status.replace(/_/g," ")}</Badge></td>
+                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(Number(o.total))}</td>
+                  <td className="px-6 py-4"><Badge variant={statusColors[o.status] ?? "default"}>{o.status.replace(/_/g, " ")}</Badge></td>
                   <td className="px-6 py-4"><Badge variant={o.paymentStatus === "PAID" ? "success" : "warning"}>{o.paymentStatus}</Badge></td>
                   <td className="px-6 py-4 text-gray-400 text-xs">{formatDateTime(o.placedAt)}</td>
                 </tr>

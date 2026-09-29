@@ -70,15 +70,15 @@ export default async function EditProductPage({ params }: { params: { id: string
                 </Badge>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                <div><p className="text-xs text-gray-400">Cost Price</p><p className="font-semibold text-gray-900">{formatCurrency(v.costPrice)}</p></div>
-                <div><p className="text-xs text-gray-400">Retail Price</p><p className="font-semibold text-gray-900">{formatCurrency(v.retailPrice)}</p></div>
-                <div><p className="text-xs text-gray-400">Wholesale</p><p className="font-semibold text-gray-900">{v.wholesalePrice ? formatCurrency(v.wholesalePrice) : "—"}</p></div>
-                <div><p className="text-xs text-gray-400">Min Selling</p><p className="font-semibold text-gray-900">{formatCurrency(v.minSellingPrice)}</p></div>
+                <div><p className="text-xs text-gray-400">Cost Price</p><p className="font-semibold text-gray-900">{formatCurrency(Number(v.costPrice))}</p></div>
+                <div><p className="text-xs text-gray-400">Retail Price</p><p className="font-semibold text-gray-900">{formatCurrency(Number(v.retailPrice))}</p></div>
+                <div><p className="text-xs text-gray-400">Wholesale</p><p className="font-semibold text-gray-900">{v.wholesalePrice ? formatCurrency(Number(v.wholesalePrice)) : "—"}</p></div>
+                <div><p className="text-xs text-gray-400">Min Selling</p><p className="font-semibold text-gray-900">{formatCurrency(Number(v.minSellingPrice))}</p></div>
               </div>
               <div className="mt-2 flex gap-4 text-sm">
-                <span className="text-gray-500">Stock: <strong className={v.inventory?.quantity === 0 ? "text-red-600" : "text-gray-900"}>{v.inventory?.quantity ?? 0}</strong></span>
+                <span className="text-gray-500">Stock: <strong className={Number(v.inventory?.quantity ?? 0) === 0 ? "text-red-600" : "text-gray-900"}>{Number(v.inventory?.quantity ?? 0)}</strong></span>
                 <span className="text-gray-500">Margin: <strong className="text-green-600">
-                  {v.retailPrice > 0 ? (((v.retailPrice - v.costPrice) / v.retailPrice) * 100).toFixed(1) : 0}%
+                  {Number(v.retailPrice) > 0 ? (((Number(v.retailPrice) - Number(v.costPrice)) / Number(v.retailPrice)) * 100).toFixed(1) : 0}%
                 </strong></span>
               </div>
               {v.priceHistory.length > 0 && (

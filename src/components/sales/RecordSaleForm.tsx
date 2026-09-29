@@ -6,9 +6,11 @@ import { Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Variant {
-  id: string; name: string; sku: string; retailPrice: number;
-  wholesalePrice: number | null; minSellingPrice: number; costPrice: number;
-  inventory: { quantity: number } | null;
+  id: string; name: string; sku: string; retailPrice: number | string | { toString(): string };
+  wholesalePrice: number | string | { toString(): string } | null;
+  minSellingPrice: number | string | { toString(): string };
+  costPrice: number | string | { toString(): string };
+  inventory: { quantity: number | string | { toString(): string } } | null;
 }
 interface Product {
   id: string; name: string; unit: string;
@@ -57,7 +59,7 @@ export function RecordSaleForm({ products, customers }: {
       const updated = { ...item, [field]: value };
       if (field === "variantId") {
         const v = getVariant(item.productId, value as string);
-        if (v) updated.unitPrice = v.retailPrice;
+        if (v) updated.unitPrice = Number(v.retailPrice);
       }
       if (field === "productId") {
         updated.variantId = "";
@@ -122,7 +124,7 @@ export function RecordSaleForm({ products, customers }: {
         {items.map((item, idx) => {
           const productVariants = products.find(p => p.id === item.productId)?.variants ?? [];
           const variant = getVariant(item.productId, item.variantId);
-          const stock = variant?.inventory?.quantity ?? null;
+          const stock = variant?.inventory?.quantity != null ? Number(variant.inventory.quantity) : null;
           return (
             <div key={idx} className="border border-gray-100 rounded-xl p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -141,7 +143,7 @@ export function RecordSaleForm({ products, customers }: {
                 <select value={item.variantId} onChange={e => updateItem(idx, "variantId", e.target.value)} className={inputCls}>
                   <option value="">Select variant…</option>
                   {productVariants.map(v => (
-                    <option key={v.id} value={v.id}>{v.name} — {formatCurrency(v.retailPrice)} (Stock: {v.inventory?.quantity ?? 0})</option>
+                    <option key={v.id} value={v.id}>{v.name} — {formatCurrency(Number(v.retailPrice))} (Stock: {Number(v.inventory?.quantity ?? 0)})</option>
                   ))}
                 </select>
               )}

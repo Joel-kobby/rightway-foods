@@ -41,9 +41,9 @@ export default async function AdminInventoryPage() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {inventory.map((inv) => {
-              const isOut  = inv.quantity <= 0;
-              const isLow  = !isOut && inv.quantity <= inv.product.reorderLevel;
-              const value  = inv.quantity * inv.variant.costPrice;
+              const isOut = Number(inv.quantity) <= 0;
+              const isLow = !isOut && Number(inv.quantity) <= inv.product.reorderLevel;
+              const value = Number(inv.quantity) * Number(inv.variant.costPrice);
               return (
                 <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
@@ -53,7 +53,7 @@ export default async function AdminInventoryPage() {
                   <td className="px-6 py-4 font-mono text-xs text-gray-500">{inv.variant.sku}</td>
                   <td className="px-6 py-4 text-right">
                     <span className={`font-bold text-lg ${isOut ? "text-red-600" : isLow ? "text-amber-600" : "text-gray-900"}`}>
-                      {inv.quantity}
+                      {Number(inv.quantity)}
                     </span>
                     <span className="text-xs text-gray-400 ml-1">{inv.product.unit}</span>
                   </td>
@@ -73,7 +73,7 @@ export default async function AdminInventoryPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <InventoryAdjustModal inventoryId={inv.id} variantName={`${inv.product.name} — ${inv.variant.name}`} currentQty={inv.quantity} />
+                    <InventoryAdjustModal inventoryId={inv.id} variantName={`${inv.product.name} — ${inv.variant.name}`} currentQty={Number(inv.quantity)} />
                   </td>
                 </tr>
               );

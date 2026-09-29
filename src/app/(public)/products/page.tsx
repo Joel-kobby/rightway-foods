@@ -51,7 +51,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { c
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map(product => {
           const cheapest = product.variants[0];
-          const inStock  = product.variants.some(v => (v.inventory?.quantity ?? 0) > 0);
+          const inStock = product.variants.some(v => Number(v.inventory?.quantity ?? 0) > 0);
           return (
             <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
               <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center">
@@ -65,7 +65,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: { c
                 {product.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>}
                 <div className="flex items-center justify-between mt-4">
                   <p className="font-bold text-gray-900">
-                    {cheapest ? `From ${formatCurrency(cheapest.retailPrice)}` : "Price on request"}
+                    {cheapest ? `From ${formatCurrency(Number(cheapest.retailPrice))}` : "Price on request"}
                   </p>
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${inStock ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                     {inStock ? "In Stock" : "Out of Stock"}

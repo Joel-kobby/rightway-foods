@@ -84,7 +84,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map(product => {
             const variant = product.variants[0];
-            const inStock = (variant?.inventory?.quantity ?? 0) > 0;
+            const inStock = (variant?.inventory?.quantity != null) && Number(variant.inventory.quantity) > 0;
             return (
               <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
                 {/* Product image placeholder */}
@@ -100,7 +100,7 @@ export default async function HomePage() {
                   <div className="flex items-center justify-between mt-4">
                     <div>
                       {variant ? (
-                        <p className="font-bold text-gray-900">From {formatCurrency(variant.retailPrice)}</p>
+                        <p className="font-bold text-gray-900">From {formatCurrency(Number(variant.retailPrice))}</p>
                       ) : (
                         <p className="text-gray-400 text-sm">Price on request</p>
                       )}

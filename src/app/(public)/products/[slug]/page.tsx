@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           <div className="space-y-3 mb-8">
             <p className="text-sm font-semibold text-gray-700">Select size / quantity:</p>
             {product.variants.map(v => {
-              const inStock = (v.inventory?.quantity ?? 0) > 0;
+              const inStock = Number(v.inventory?.quantity ?? 0) > 0;
               return (
                 <div key={v.id} className="flex items-center justify-between border border-gray-200 rounded-xl p-4">
                   <div>
@@ -59,11 +59,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">{formatCurrency(v.retailPrice)}</p>
-                      {v.wholesalePrice && <p className="text-xs text-gray-400">Wholesale: {formatCurrency(v.wholesalePrice)}</p>}
+                      <p className="font-bold text-gray-900">{formatCurrency(Number(v.retailPrice))}</p>
+                      {v.wholesalePrice && <p className="text-xs text-gray-400">Wholesale: {formatCurrency(Number(v.wholesalePrice))}</p>}
                     </div>
                     {inStock ? (
-                      <AddToCartButton variantId={v.id} variantName={v.name} price={v.retailPrice} productName={product.name} />
+                      <AddToCartButton variantId={v.id} variantName={v.name} price={Number(v.retailPrice)} productName={product.name} />
                     ) : (
                       <span className="text-xs text-gray-400 bg-gray-100 px-3 py-2 rounded-lg">Out of Stock</span>
                     )}

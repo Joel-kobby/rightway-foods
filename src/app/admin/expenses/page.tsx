@@ -18,7 +18,7 @@ export default async function AdminExpensesPage() {
       orderBy: { expenseDate: "desc" },
       take: 200,
       include: {
-        category:   { select: { name: true } },
+        category: { select: { name: true } },
         recordedBy: { select: { name: true } },
       },
     }),
@@ -53,8 +53,8 @@ export default async function AdminExpensesPage() {
                 <td className="px-6 py-4 font-mono text-xs text-gray-500">{e.expenseRef}</td>
                 <td className="px-6 py-4 text-gray-700">{e.category.name}</td>
                 <td className="px-6 py-4 text-gray-800">{e.description}</td>
-                <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(e.amount)}</td>
-                <td className="px-6 py-4 text-gray-600 text-xs">{e.paymentMethod.replace("_"," ")}</td>
+                <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(Number(e.amount))}</td>
+                <td className="px-6 py-4 text-gray-600 text-xs">{e.paymentMethod.replace("_", " ")}</td>
                 <td className="px-6 py-4 text-gray-600">{e.recordedBy.name}</td>
                 <td className="px-6 py-4 text-gray-400 text-xs">{formatDate(e.expenseDate)}</td>
               </tr>

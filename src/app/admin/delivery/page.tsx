@@ -33,9 +33,9 @@ export default async function AdminDeliveryPage() {
   });
   const orderMap = Object.fromEntries(orders.map(o => [o.id, o]));
 
-  const statusColors: Record<string, "default"|"info"|"warning"|"success"|"danger"> = {
-    PENDING:"warning", ASSIGNED:"info", DISPATCHED:"info",
-    OUT_FOR_DELIVERY:"info", DELIVERED:"success", FAILED:"danger", RETURNED:"danger",
+  const statusColors: Record<string, "default" | "info" | "warning" | "success" | "danger"> = {
+    PENDING: "warning", ASSIGNED: "info", DISPATCHED: "info",
+    OUT_FOR_DELIVERY: "info", DELIVERED: "success", FAILED: "danger", RETURNED: "danger",
   };
 
   return (
@@ -52,7 +52,7 @@ export default async function AdminDeliveryPage() {
         {zones.map(z => (
           <div key={z.id} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className="text-xs font-semibold text-gray-700 truncate">{z.name}</p>
-            <p className="text-base font-bold text-gray-900 mt-1">{formatCurrency(z.fee)}</p>
+            <p className="text-base font-bold text-gray-900 mt-1">{formatCurrency(Number(z.fee))}</p>
             <p className="text-xs text-gray-400">{z.estimatedDays} day{z.estimatedDays > 1 ? "s" : ""}</p>
           </div>
         ))}
@@ -85,9 +85,9 @@ export default async function AdminDeliveryPage() {
                     <p className="text-xs text-gray-400">{order?.guestPhone ?? ""}</p>
                   </td>
                   <td className="px-6 py-4 text-gray-600">{[order?.guestCity, order?.guestRegion].filter(Boolean).join(", ") || "—"}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{order ? formatCurrency(order.total) : "—"}</td>
+                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{order ? formatCurrency(Number(order.total)) : "—"}</td>
                   <td className="px-6 py-4 text-gray-600">{d.zone?.name ?? "—"}</td>
-                  <td className="px-6 py-4"><Badge variant={statusColors[d.status] ?? "default"}>{d.status.replace(/_/g," ")}</Badge></td>
+                  <td className="px-6 py-4"><Badge variant={statusColors[d.status] ?? "default"}>{d.status.replace(/_/g, " ")}</Badge></td>
                   <td className="px-6 py-4 text-gray-400 text-xs">{formatDateTime(d.createdAt)}</td>
                 </tr>
               );

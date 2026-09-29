@@ -64,13 +64,13 @@ export default async function AdminProductsPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {products.map((product) => {
-                const totalStock = product.variants.reduce((sum, v) => sum + (v.inventory?.quantity ?? 0), 0);
-                const lowestPrice = Math.min(...product.variants.map((v) => v.retailPrice));
-                const highestPrice = Math.max(...product.variants.map((v) => v.retailPrice));
+                const totalStock = product.variants.reduce((sum, v) => sum + Number(v.inventory?.quantity ?? 0), 0);
                 const isLowStock = product.variants.some(
-                  (v) => (v.inventory?.quantity ?? 0) <= product.reorderLevel && (v.inventory?.quantity ?? 0) > 0
+                  (v) => Number(v.inventory?.quantity ?? 0) <= product.reorderLevel && Number(v.inventory?.quantity ?? 0) > 0
                 );
-                const isOutOfStock = product.variants.every((v) => (v.inventory?.quantity ?? 0) <= 0);
+                const isOutOfStock = product.variants.every((v) => Number(v.inventory?.quantity ?? 0) <= 0);
+                const lowestPrice = Math.min(...product.variants.map((v) => Number(v.retailPrice)));
+                const highestPrice = Math.max(...product.variants.map((v) => Number(v.retailPrice)));
 
                 return (
                   <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">

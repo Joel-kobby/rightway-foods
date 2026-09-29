@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
-interface Zone { id: string; name: string; fee: number | string; estimatedDays: number; freeDeliveryThreshold: number | string | null; }
+interface Zone { id: string; name: string; fee: number | string | { toString(): string }; estimatedDays: number; freeDeliveryThreshold: number | string | { toString(): string } | null; }
 interface CartItem { variantId: string; productName: string; variantName: string; price: number; quantity: number; }
 
 export function CheckoutForm({ zones }: { zones: Zone[] }) {

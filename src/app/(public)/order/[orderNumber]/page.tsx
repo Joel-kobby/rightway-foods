@@ -49,7 +49,7 @@ export default async function OrderConfirmationPage({ params }: { params: { orde
           {order.items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span className="text-gray-700">
-                {item.product.name} — {item.variant.name} × {item.quantity}
+                {item.product.name} — {item.variant.name} × {Number(item.quantity)}
               </span>
               <span className="font-medium text-gray-900">{formatCurrency(item.total)}</span>
             </div>
@@ -62,7 +62,7 @@ export default async function OrderConfirmationPage({ params }: { params: { orde
           </div>
           <div className="flex justify-between text-gray-600">
             <span>Delivery ({order.deliveryZone?.name ?? "—"})</span>
-            <span>{order.deliveryFee > 0 ? formatCurrency(order.deliveryFee) : "FREE"}</span>
+            <span>{Number(order.deliveryFee) > 0 ? formatCurrency(order.deliveryFee) : "FREE"}</span>
           </div>
           <div className="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-100">
             <span>Total</span>

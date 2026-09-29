@@ -72,8 +72,8 @@ export default async function AdminCustomersPage() {
                   <td className="px-6 py-4 text-gray-600">{[c.city, c.region].filter(Boolean).join(", ") || "—"}</td>
                   <td className="px-6 py-4 text-right font-medium text-gray-900">{formatCurrency(c.totalPurchases)}</td>
                   <td className="px-6 py-4 text-right">
-                    <span className={c.outstandingBalance > 0 ? "text-red-600 font-semibold" : "text-gray-400"}>
-                      {c.outstandingBalance > 0 ? formatCurrency(c.outstandingBalance) : "—"}
+                    <span className={Number(c.outstandingBalance) > 0 ? "text-red-600 font-semibold" : "text-gray-400"}>
+                      {Number(c.outstandingBalance) > 0 ? formatCurrency(c.outstandingBalance) : "—"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-gray-600">{c.assignedTo?.name ?? "—"}</td>

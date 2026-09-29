@@ -97,7 +97,7 @@ export async function GET() {
 
   // Calculate low stock items
   const lowStock = lowStockVariants.filter(
-    (inv) => inv.quantity > 0 && inv.quantity <= inv.product.reorderLevel
+    (inv) => Number(inv.quantity) > 0 && Number(inv.quantity) <= inv.product.reorderLevel
   );
 
   // Get product names for top products

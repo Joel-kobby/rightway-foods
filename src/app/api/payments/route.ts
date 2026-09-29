@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-const ALLOWED = ["SUPER_ADMIN","ADMIN","CASHIER","BRANCH_MANAGER"];
+const ALLOWED = ["SUPER_ADMIN", "ADMIN", "CASHIER", "BRANCH_MANAGER"];
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
   const payments = await db.payment.findMany({
     where,
     include: {
-      sale:    { select: { saleNumber: true, total: true } },
-      customer:{ select: { firstName: true, lastName: true, businessName: true } },
+      sale: { select: { saleNumber: true, total: true } },
+      customer: { select: { firstName: true, lastName: true, businessName: true } },
       cashier: { select: { name: true } },
     },
     orderBy: { paidAt: "desc" },
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const payment = await tx.payment.create({
       data: {
         transactionId, saleId, orderId, customerId,
-        cashierId:    session.user.id,
+        cashierId: session.user.id,
         cashSessionId,
         amount, paymentMethod, reference, notes,
         status: "CONFIRMED",
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         include: { payments: true },
       });
       if (sale) {
-        const totalPaid = sale.payments.reduce((s, p) => s + p.amount, 0) + amount;
+        const totalPaid = sale.payments.reduce((s, p) => s + Number(p.amount), 0) + amount;
         const newStatus = totalPaid >= sale.total ? "PAID" : "PARTIAL";
         await tx.sale.update({ where: { id: saleId }, data: { paymentStatus: newStatus } });
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
         if (sale.customerId) {
           await tx.customer.update({
             where: { id: sale.customerId },
-            data:  { outstandingBalance: { decrement: amount } },
+            data: { outstandingBalance: { decrement: amount } },
           });
         }
       }
@@ -94,10 +94,10 @@ export async function POST(req: NextRequest) {
 
   await db.auditLog.create({
     data: {
-      userId:   session.user.id,
+      userId: session.user.id,
       userRole: session.user.role,
-      action:   "PAYMENT_RECORDED",
-      entity:   "Payment",
+      action: "PAYMENT_RECORDED",
+      entity: "Payment",
       entityId: payment.id,
       newValue: JSON.stringify({ transactionId, amount, paymentMethod }),
     },

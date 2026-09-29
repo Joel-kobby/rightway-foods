@@ -88,7 +88,7 @@ export default async function CashierDashboard() {
               const name = sale.customer
                 ? (sale.customer.businessName ?? `${sale.customer.firstName} ${sale.customer.lastName ?? ""}`.trim())
                 : "Walk-in";
-              const paid = sale.payments.reduce((s, p) => s + p.amount, 0);
+              const paid = sale.payments.reduce((s, p) => s + Number(p.amount), 0);
               const owing = Number(sale.total) - paid;
               return (
                 <div key={sale.id} className="px-5 py-4">

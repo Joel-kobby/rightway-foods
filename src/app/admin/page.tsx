@@ -87,7 +87,7 @@ export default async function AdminDashboard() {
   const outstandingAmt = Number(unpaidSales._sum.total ?? 0);
 
   const lowStockItems = inventoryItems.filter(
-    (inv) => inv.quantity > 0 && inv.quantity <= inv.product.reorderLevel && inv.product.isActive
+    (inv) => Number(inv.quantity) > 0 && Number(inv.quantity) <= inv.product.reorderLevel && inv.product.isActive
   );
 
   // Build attention items
@@ -242,7 +242,7 @@ export default async function AdminDashboard() {
               {lowStockItems.slice(0, 4).map((inv) => (
                 <div key={inv.variantId} className="flex items-center justify-between text-xs">
                   <span className="text-gray-700 truncate">{inv.product.name} — {inv.variant.name}</span>
-                  <span className="text-amber-600 font-semibold ml-2 flex-shrink-0">{inv.quantity} left</span>
+                  <span className="text-amber-600 font-semibold ml-2 flex-shrink-0">{Number(inv.quantity)} left</span>
                 </div>
               ))}
             </div>

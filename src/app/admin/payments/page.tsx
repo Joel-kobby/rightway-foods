@@ -19,8 +19,8 @@ export default async function AdminPaymentsPage() {
       orderBy: { paidAt: "desc" },
       take: 200,
       include: {
-        sale:    { select: { saleNumber: true } },
-        customer:{ select: { firstName: true, lastName: true, businessName: true } },
+        sale: { select: { saleNumber: true } },
+        customer: { select: { firstName: true, lastName: true, businessName: true } },
         cashier: { select: { name: true } },
       },
     }),
@@ -30,8 +30,8 @@ export default async function AdminPaymentsPage() {
     }),
   ]);
 
-  const methodColors: Record<string, "default"|"success"|"info"|"warning"> = {
-    CASH:"success", MOBILE_MONEY:"info", BANK_TRANSFER:"warning", CARD:"info",
+  const methodColors: Record<string, "default" | "success" | "info" | "warning"> = {
+    CASH: "success", MOBILE_MONEY: "info", BANK_TRANSFER: "warning", CARD: "info",
   };
 
   return (
@@ -63,8 +63,8 @@ export default async function AdminPaymentsPage() {
                   <td className="px-6 py-4 font-mono text-xs text-gray-500">{p.transactionId}</td>
                   <td className="px-6 py-4 text-gray-800">{name}</td>
                   <td className="px-6 py-4 font-mono text-xs text-gray-400">{p.sale?.saleNumber ?? "—"}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(p.amount)}</td>
-                  <td className="px-6 py-4"><Badge variant={methodColors[p.paymentMethod] ?? "default"}>{p.paymentMethod.replace("_"," ")}</Badge></td>
+                  <td className="px-6 py-4 text-right font-semibold text-gray-900">{formatCurrency(Number(p.amount))}</td>
+                  <td className="px-6 py-4"><Badge variant={methodColors[p.paymentMethod] ?? "default"}>{p.paymentMethod.replace("_", " ")}</Badge></td>
                   <td className="px-6 py-4 text-gray-600">{p.cashier?.name ?? "—"}</td>
                   <td className="px-6 py-4 text-gray-400 text-xs">{formatDateTime(p.paidAt)}</td>
                 </tr>

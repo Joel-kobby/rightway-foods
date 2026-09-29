@@ -8,22 +8,22 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const dateFrom = searchParams.get("from");
-  const dateTo   = searchParams.get("to");
-  const isAdmin  = ["SUPER_ADMIN","ADMIN","ACCOUNTANT","BRANCH_MANAGER","AUDITOR"].includes(session.user.role);
+  const dateTo = searchParams.get("to");
+  const isAdmin = ["SUPER_ADMIN", "ADMIN", "ACCOUNTANT", "BRANCH_MANAGER", "AUDITOR"].includes(session.user.role);
 
   const where: Record<string, unknown> = {};
   if (!isAdmin) where.salespersonId = session.user.id; // salesperson sees only own sales
   if (dateFrom || dateTo) {
     where.saleDate = {
       ...(dateFrom && { gte: new Date(dateFrom) }),
-      ...(dateTo   && { lte: new Date(dateTo) }),
+      ...(dateTo && { lte: new Date(dateTo) }),
     };
   }
 
   const sales = await db.sale.findMany({
     where,
     include: {
-      customer:    { select: { firstName: true, lastName: true, businessName: true, customerId: true } },
+      customer: { select: { firstName: true, lastName: true, businessName: true, customerId: true } },
       salesperson: { select: { name: true } },
       items: {
         include: {
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const allowed = ["SUPER_ADMIN","ADMIN","SALESPERSON","BRANCH_MANAGER"];
+  const allowed = ["SUPER_ADMIN", "ADMIN", "SALESPERSON", "BRANCH_MANAGER"];
   if (!allowed.includes(session.user.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Product variant not found or inactive.` }, { status: 400 });
     }
 
-    const unitPrice  = item.overridePrice ?? variant.retailPrice;
+    const unitPrice = item.overridePrice ?? variant.retailPrice;
     const itemDiscount = item.discount ?? 0;
 
     // Enforce minimum selling price
@@ -85,39 +85,39 @@ export async function POST(req: NextRequest) {
       }, { status: 422 });
     }
 
-    const itemTotal  = (unitPrice * item.quantity) - itemDiscount;
-    const itemCost   = variant.costPrice * item.quantity;
+    const itemTotal = (unitPrice * item.quantity) - itemDiscount;
+    const itemCost = Number(variant.costPrice) * item.quantity;
     const itemProfit = itemTotal - itemCost;
 
-    subtotal  += itemTotal;
+    subtotal += itemTotal;
     costTotal += itemCost;
 
     resolvedItems.push({
-      productId:   variant.productId,
-      variantId:   variant.id,
-      quantity:    item.quantity,
+      productId: variant.productId,
+      variantId: variant.id,
+      quantity: item.quantity,
       unitPrice,
-      costPrice:   variant.costPrice,
-      discount:    itemDiscount,
-      total:       itemTotal,
+      costPrice: Number(variant.costPrice),
+      discount: itemDiscount,
+      total: itemTotal,
       grossProfit: itemProfit,
     });
   }
 
-  const totalDiscount  = discount ?? 0;
-  const total          = subtotal - totalDiscount;
-  const grossProfit    = total - costTotal;
+  const totalDiscount = discount ?? 0;
+  const total = subtotal - totalDiscount;
+  const grossProfit = total - costTotal;
 
   // Create sale + items + update inventory in a transaction
   const sale = await db.$transaction(async (tx) => {
     const sale = await tx.sale.create({
       data: {
         saleNumber,
-        customerId:    customerId ?? null,
+        customerId: customerId ?? null,
         salespersonId: session.user.id,
         cashSessionId: cashSessionId ?? null,
         subtotal,
-        discount:      totalDiscount,
+        discount: totalDiscount,
         total,
         costTotal,
         grossProfit,
@@ -135,21 +135,21 @@ export async function POST(req: NextRequest) {
       const inv = await tx.inventory.findUnique({ where: { variantId: item.variantId } });
       if (!inv) continue;
 
-      const newQty = inv.quantity - item.quantity;
+      const newQty = Number(inv.quantity) - item.quantity;
 
       await tx.inventory.update({
         where: { id: inv.id },
-        data:  { quantity: newQty },
+        data: { quantity: newQty },
       });
 
       await tx.inventoryMovement.create({
         data: {
-          inventoryId:   inv.id,
-          type:          "SALE",
-          quantity:      -item.quantity,
-          balanceAfter:  newQty,
-          reason:        `Sale ${saleNumber}`,
-          reference:     sale.id,
+          inventoryId: inv.id,
+          type: "SALE",
+          quantity: -item.quantity,
+          balanceAfter: newQty,
+          reason: `Sale ${saleNumber}`,
+          reference: sale.id,
           performedById: session.user.id,
         },
       });
@@ -159,10 +159,10 @@ export async function POST(req: NextRequest) {
     if (customerId) {
       await tx.customer.update({
         where: { id: customerId },
-        data:  {
-          totalPurchases:     { increment: total },
+        data: {
+          totalPurchases: { increment: total },
           outstandingBalance: paymentStatus === "UNPAID" ? { increment: total } : undefined,
-          lastPurchaseAt:     new Date(),
+          lastPurchaseAt: new Date(),
         },
       });
     }
@@ -173,13 +173,13 @@ export async function POST(req: NextRequest) {
       await tx.payment.create({
         data: {
           transactionId: `RWP-${new Date().getFullYear()}-${String(pCount + 1).padStart(6, "0")}`,
-          saleId:        sale.id,
-          customerId:    customerId ?? null,
-          cashierId:     session.user.id,
+          saleId: sale.id,
+          customerId: customerId ?? null,
+          cashierId: session.user.id,
           cashSessionId: cashSessionId ?? null,
-          amount:        total,
+          amount: total,
           paymentMethod: paymentMethod,
-          status:        "CONFIRMED",
+          status: "CONFIRMED",
         },
       });
     }
@@ -190,10 +190,10 @@ export async function POST(req: NextRequest) {
   // Audit log
   await db.auditLog.create({
     data: {
-      userId:   session.user.id,
+      userId: session.user.id,
       userRole: session.user.role,
-      action:   "SALE_CREATED",
-      entity:   "Sale",
+      action: "SALE_CREATED",
+      entity: "Sale",
       entityId: sale.id,
       newValue: JSON.stringify({ saleNumber, total, items: resolvedItems.length }),
     },
