@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { db } from "@/lib/db";
 import { CheckoutForm } from "@/components/public/CheckoutForm";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Checkout — RightWay Foods" };
 
 export default async function CheckoutPage() {
