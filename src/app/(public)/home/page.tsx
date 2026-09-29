@@ -88,10 +88,14 @@ export default async function HomePage() {
             return (
               <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
                 {/* Product image placeholder */}
-                <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center">
-                  <span className="text-6xl">
-                    {product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴"}
-                  </span>
+                <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center overflow-hidden">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-6xl">
+                      {product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴"}
+                    </span>
+                  )}
                 </div>
                 <div className="p-5">
                   <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{product.category.name}</p>

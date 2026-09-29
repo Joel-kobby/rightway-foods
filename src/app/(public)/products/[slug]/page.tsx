@@ -36,8 +36,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Image */}
-        <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] rounded-3xl flex items-center justify-center">
-          <span className="text-9xl">{emoji}</span>
+        <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] rounded-3xl flex items-center justify-center overflow-hidden">
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-3xl" />
+          ) : (
+            <span className="text-9xl">{emoji}</span>
+          )}
         </div>
 
         {/* Info */}

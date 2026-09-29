@@ -54,10 +54,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: { c
           const inStock = product.variants.some(v => Number(v.inventory?.quantity ?? 0) > 0);
           return (
             <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center">
-                <span className="text-6xl">
-                  {product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴"}
-                </span>
+              <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center overflow-hidden">
+                {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-6xl">
+                    {product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴"}
+                  </span>
+                )}
               </div>
               <div className="p-5">
                 <p className="text-xs text-[hsl(142,71%,25%)] font-semibold uppercase tracking-wide">{product.category.name}</p>
