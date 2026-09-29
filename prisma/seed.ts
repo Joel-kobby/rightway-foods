@@ -104,7 +104,7 @@ async function main() {
   const palmOil = await db.product.upsert({
     where: { sku: "RW-PO" },
     update: {},
-    create: { sku: "RW-PO", name: "Palm Oil", slug: "palm-oil", description: "Pure, unrefined Ghanaian palm oil. Rich in nutrients and natural colour.", categoryId: oilCat.id, unit: "litre", supplierId: supplier1.id, reorderLevel: 50, isDemo: true },
+    create: { sku: "RW-PO", name: "Palm Oil", slug: "palm-oil", description: "Pure, unrefined Ghanaian palm oil. Rich in nutrients and natural colour.", categoryId: oilCat.id, unit: "litre", supplierId: supplier1.id, reorderLevel: 50, isDemo: true, imageUrl: "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg" },
   });
 
   const po1L = await db.productVariant.upsert({
