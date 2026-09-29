@@ -87,12 +87,13 @@ export default async function HomePage() {
             const inStock = (variant?.inventory?.quantity != null) && Number(variant.inventory.quantity) > 0;
 
             // Default product images by slug
-            const defaultImages: Record<string, string> = {
+            const productImages: Record<string, string> = {
               "palm-oil": "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg",
               "coconut-oil": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80",
               "eggs": "https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?w=600&q=80",
             };
-            const imageUrl = product.imageUrl || defaultImages[product.slug] || null;
+            // Code-level images take priority over database values
+            const imageUrl = productImages[product.slug] ?? product.imageUrl ?? null;
             return (
               <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
                 {/* Product image placeholder */}

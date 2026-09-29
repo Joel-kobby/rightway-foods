@@ -32,12 +32,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   const emoji = product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴";
 
-  const defaultImages: Record<string, string> = {
+  const productImages: Record<string, string> = {
     "palm-oil": "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg",
     "coconut-oil": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80",
     "eggs": "https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?w=600&q=80",
   };
-  const imageUrl = product.imageUrl || defaultImages[product.slug] || null;
+  const imageUrl = productImages[product.slug] ?? product.imageUrl ?? null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
