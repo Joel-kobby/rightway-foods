@@ -1,12 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { getDashboardRoute } from "@/lib/permissions";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
   pages: {
@@ -61,7 +59,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-// Augment next-auth types
 declare module "next-auth" {
   interface User {
     role: string;
@@ -76,5 +73,3 @@ declare module "next-auth" {
     };
   }
 }
-
-// JWT sub-type extension handled via session callback above
