@@ -32,13 +32,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   const emoji = product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴";
 
+  const defaultImages: Record<string, string> = {
+    "palm-oil": "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg",
+    "coconut-oil": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80",
+    "eggs": "https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?w=600&q=80",
+  };
+  const imageUrl = product.imageUrl || defaultImages[product.slug] || null;
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Image */}
         <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] rounded-3xl flex items-center justify-center overflow-hidden">
-          {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-3xl" />
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.name} className="w-full h-full object-cover rounded-3xl" />
           ) : (
             <span className="text-9xl">{emoji}</span>
           )}

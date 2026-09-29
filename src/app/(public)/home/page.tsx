@@ -85,12 +85,20 @@ export default async function HomePage() {
           {products.map(product => {
             const variant = product.variants[0];
             const inStock = (variant?.inventory?.quantity != null) && Number(variant.inventory.quantity) > 0;
+
+            // Default product images by slug
+            const defaultImages: Record<string, string> = {
+              "palm-oil": "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg",
+              "coconut-oil": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80",
+              "eggs": "https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?w=600&q=80",
+            };
+            const imageUrl = product.imageUrl || defaultImages[product.slug] || null;
             return (
               <Link key={product.id} href={`/products/${product.slug}`} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
                 {/* Product image placeholder */}
                 <div className="aspect-square bg-gradient-to-br from-[hsl(45,30%,96%)] to-[hsl(142,30%,92%)] flex items-center justify-center overflow-hidden">
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-6xl">
                       {product.name.toLowerCase().includes("egg") ? "🥚" : product.name.toLowerCase().includes("coconut") ? "🥥" : "🌴"}
