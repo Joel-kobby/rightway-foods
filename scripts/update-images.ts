@@ -11,7 +11,7 @@ async function main() {
 
   await db.product.update({
     where: { slug: "palm-oil" },
-    data: { imageUrl: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=600&q=80" },
+    data: { imageUrl: "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg" },
   });
 
   await db.product.update({
