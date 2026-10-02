@@ -3,7 +3,7 @@ services:
     name: rightway-foods
     env: node
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build && npx ts-node --project tsconfig.seed.json scripts/post-deploy.ts && npx ts-node --project tsconfig.seed.json scripts/update-pricing.ts
+    buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
