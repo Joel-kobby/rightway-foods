@@ -107,16 +107,28 @@ async function main() {
     create: { sku: "RW-PO", name: "Palm Oil", slug: "palm-oil", description: "Pure, unrefined Ghanaian palm oil. Rich in nutrients and natural colour.", categoryId: oilCat.id, unit: "litre", supplierId: supplier1.id, reorderLevel: 50, isDemo: true, imageUrl: "https://i.ibb.co/CsnN81Mb/Whats-App-Image-2026-09-29-at-05-02-34.jpg" },
   });
 
+  const po200ml = await db.productVariant.upsert({
+    where: { sku: "RW-PO-200ML" },
+    update: { retailPrice: 10, costPrice: 6, wholesalePrice: 8, minSellingPrice: 8 },
+    create: { productId: palmOil.id, name: "200ml", sku: "RW-PO-200ML", unit: "200ml bottle", costPrice: 6, retailPrice: 10, wholesalePrice: 8, minSellingPrice: 8 },
+  });
+
+  const po500ml = await db.productVariant.upsert({
+    where: { sku: "RW-PO-500ML" },
+    update: { retailPrice: 25, costPrice: 15, wholesalePrice: 22, minSellingPrice: 20 },
+    create: { productId: palmOil.id, name: "500ml", sku: "RW-PO-500ML", unit: "500ml bottle", costPrice: 15, retailPrice: 25, wholesalePrice: 22, minSellingPrice: 20 },
+  });
+
   const po1L = await db.productVariant.upsert({
     where: { sku: "RW-PO-1L" },
-    update: {},
-    create: { productId: palmOil.id, name: "1 Litre", sku: "RW-PO-1L", unit: "1 litre bottle", costPrice: 18, retailPrice: 28, wholesalePrice: 24, minSellingPrice: 22 },
+    update: { retailPrice: 45, costPrice: 28, wholesalePrice: 40, minSellingPrice: 35 },
+    create: { productId: palmOil.id, name: "1 Litre", sku: "RW-PO-1L", unit: "1 litre bottle", costPrice: 28, retailPrice: 45, wholesalePrice: 40, minSellingPrice: 35 },
   });
 
   const po5L = await db.productVariant.upsert({
     where: { sku: "RW-PO-5L" },
-    update: {},
-    create: { productId: palmOil.id, name: "5 Litres", sku: "RW-PO-5L", unit: "5 litre container", costPrice: 85, retailPrice: 130, wholesalePrice: 115, minSellingPrice: 105 },
+    update: { retailPrice: 230, costPrice: 150, wholesalePrice: 210, minSellingPrice: 190 },
+    create: { productId: palmOil.id, name: "5 Litres", sku: "RW-PO-5L", unit: "5 litre container", costPrice: 150, retailPrice: 230, wholesalePrice: 210, minSellingPrice: 190 },
   });
 
   // Coconut Oil
@@ -126,16 +138,22 @@ async function main() {
     create: { sku: "RW-CO", name: "Coconut Oil", slug: "coconut-oil", description: "Cold-pressed virgin coconut oil. Pure, natural, and versatile.", categoryId: oilCat.id, unit: "litre", supplierId: supplier1.id, reorderLevel: 30, isDemo: true },
   });
 
+  const co500ml = await db.productVariant.upsert({
+    where: { sku: "RW-CO-500ML" },
+    update: { retailPrice: 40, costPrice: 25, wholesalePrice: 35, minSellingPrice: 32 },
+    create: { productId: coconutOil.id, name: "500ml", sku: "RW-CO-500ML", unit: "500ml bottle", costPrice: 25, retailPrice: 40, wholesalePrice: 35, minSellingPrice: 32 },
+  });
+
   const co1L = await db.productVariant.upsert({
     where: { sku: "RW-CO-1L" },
-    update: {},
-    create: { productId: coconutOil.id, name: "1 Litre", sku: "RW-CO-1L", unit: "1 litre bottle", costPrice: 35, retailPrice: 55, wholesalePrice: 48, minSellingPrice: 44 },
+    update: { retailPrice: 80, costPrice: 50, wholesalePrice: 70, minSellingPrice: 65 },
+    create: { productId: coconutOil.id, name: "1 Litre", sku: "RW-CO-1L", unit: "1 litre bottle", costPrice: 50, retailPrice: 80, wholesalePrice: 70, minSellingPrice: 65 },
   });
 
   const co5L = await db.productVariant.upsert({
     where: { sku: "RW-CO-5L" },
-    update: {},
-    create: { productId: coconutOil.id, name: "5 Litres", sku: "RW-CO-5L", unit: "5 litre container", costPrice: 165, retailPrice: 260, wholesalePrice: 230, minSellingPrice: 210 },
+    update: { retailPrice: 400, costPrice: 260, wholesalePrice: 360, minSellingPrice: 330 },
+    create: { productId: coconutOil.id, name: "5 Litres", sku: "RW-CO-5L", unit: "5 litre container", costPrice: 260, retailPrice: 400, wholesalePrice: 360, minSellingPrice: 330 },
   });
 
   // Eggs
