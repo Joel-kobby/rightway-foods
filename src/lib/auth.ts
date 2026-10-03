@@ -1,18 +1,18 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { getDashboardRoute } from "@/lib/permissions";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET ?? "rightway-foods-fallback-secret-2026",
+  secret: process.env.NEXTAUTH_SECRET ?? "rightway-foods-fallback-secret-2026",
   pages: {
     signIn: "/login",
     error: "/login",
   },
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -21,8 +21,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = String(credentials.email).toLowerCase().trim();
-        const password = String(credentials.password);
+        const email = credentials.email.toLowerCase().trim();
+        const password = credentials.password;
 
         const user = await db.user.findUnique({
           where: { email },
@@ -50,15 +50,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.dashboardRoute = getDashboardRoute(token.role as string);
+        (session.user as { id: string; role: string; dashboardRoute: string }).id = token.id as string;
+        (session.user as { id: string; role: string; dashboardRoute: string }).role = token.role as string;
+        (session.user as { id: string; role: string; dashboardRoute: string }).dashboardRoute = getDashboardRoute(token.role as string);
       }
       return session;
     },
   },
-});
+};
 
+// Type augmentation for NextAuth v4
 declare module "next-auth" {
   interface User {
     role: string;
@@ -72,4 +73,17 @@ declare module "next-auth" {
       dashboardRoute: string;
     };
   }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+  }
+}
+
+// Re-export auth() helper for server components (v4 compatibility)
+import { getServerSession } from "next-auth";
+export async function auth() {
+  return getServerSession(authOptions);
 }
