@@ -6,7 +6,7 @@ import { getDashboardRoute } from "@/lib/permissions";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? "rightway-foods-fallback-secret-2026",
   pages: {
     signIn: "/login",
     error: "/login",

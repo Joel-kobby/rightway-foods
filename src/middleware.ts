@@ -41,7 +41,7 @@ export async function middleware(req: NextRequest) {
   // Decode JWT — edge-safe, no bcrypt
   const token = await getToken({
     req,
-    secret: process.env.AUTH_SECRET,
+    secret: process.env.AUTH_SECRET ?? "rightway-foods-fallback-secret-2026",
   });
 
   const role = token?.role as string | undefined;
